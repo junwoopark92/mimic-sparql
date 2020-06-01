@@ -1,6 +1,15 @@
 # MIMIC-SPARQL
 This is Question-SPARQL pair dataset for Question Answering (QA) for Electronic Health Records (EHR).
 
+## Example
+```
+NLQ: how many patients were born before the year 2060?
+
+SQL: select count ( distinct patients."subject_id" ) from patients  where patients."dob_year" < "2060"
+
+SPARQL: select ( count ( distinct ?subject_id ) as ?agg ) where { ?subject_id </dob_year> ?dob_year. filter( ?dob_year < 2060 ).
+```
+
 ## Prerequisites
 
 1. MIMIC-III   
