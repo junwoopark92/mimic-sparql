@@ -1,4 +1,4 @@
-# mimic-sparql
+# MIMIC-SPARQL
 This is Question-SPARQL pair dataset for Question Answering (QA) for Electronic Health Records (EHR).
 
 ## Prerequisites
