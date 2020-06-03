@@ -14,11 +14,9 @@ SPARQL: select ( count ( distinct ?subject_id ) as ?agg ) where { ?subject_id </
 
 1. MIMIC-III   
 https://mimic.physionet.org/
-
 2. MIMICSQL  
 Paper title: Text-to-SQL Generation for Question Answering on Electronic Medical Records.  
 Dataset and codes: https://github.com/wangpinggl/TREQS
-
 3. ENV
 ```
 python 3.6
@@ -27,9 +25,15 @@ rdflib
 pandas
 numpy
 sqlite3
+requests
+```
+​	Set up ENV using pip
+```bash
+pip install networkx rdflib pandas numpy sqlite3 requests
 ```
 
 ## Datasets
+
 1. __MIMICSQL*__  
 MIMICSQL* is extended version of MIMICSQL. The database consists of 9 table of MIMIC-III.  
 2. __MIMIC-SPARQL__  
@@ -48,20 +52,25 @@ First, you need to access the MIMIC-III data. This requires certification from h
 And then, mimic.db is necessary to go to the next step following the https://github.com/wangpinggl/TREQS README.md  
 
 ### 1. Build mimicsql* database from mimicsql database
+First, you need to save mimic.db under `mimicsql/evaluation/mimic_db` path.
+And then, set the current directory in the project root folder, mimic-sparql.
 ```
 python build_mimicstar_db_from_mimicsql_db.py
 ```
 This is to build MIMICSQL* DB.
 ### 2. Build mimic-sparql knowlege graph from mimicsql* database
+Set the current directory in the project root folder, mimic-sparql.
 ```
 python build_kg_from_mimicsqlstar_db.py
 ```
 This is to build MIMIC-SPARQL KG.
 ### 3. Convert mimicsql SQL query to mimicsql* SQL query
+Set the current directory in the project root folder, mimic-sparql.
 ```
 python convert_mimicsql2sql_dataset.py
 ```
 ### 4. Convert mimicsql* SQL query to mimic-sparql SPARQL query
+Set the current directory as the project root folder, mimic-sparql.
 ```
 python convert_sql2sparql_dataset.py
 ```
