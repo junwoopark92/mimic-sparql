@@ -139,5 +139,4 @@ dmypy.json
 cython_debug/
 
 # Datasets
-*.xml
 *.db

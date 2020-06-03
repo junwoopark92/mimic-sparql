@@ -1,5 +1,6 @@
 import sys
 sys.path.append('..')
+sys.path.append('.')
 import os
 import pandas as pd
 import sqlite3
@@ -7,8 +8,11 @@ import sqlite3
 from schema_mimic import *
 from mimicsql.evaluation.utils import query
 
+PJT_ROOT_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__))) # project root path # Absolute path up to the second level where the current file is executed
+print('PJT_ROOT_PATH: ',PJT_ROOT_PATH)
+
 if __name__ == '__main__':
-    db_conn = sqlite3.connect('../mimicsql/evaluation/mimic_db/mimic.db')
+    db_conn = sqlite3.connect(os.path.join(PJT_ROOT_PATH,'mimicsql/evaluation/mimic_db/mimic.db')) # Absolute path up to the one level where the current file is executed
 
     patient_cols = list(patient_demographic_dtype.keys())
     addmission_cols = list(hadm_demographic_dtype.keys())
@@ -83,7 +87,7 @@ if __name__ == '__main__':
     prescriptions_df = prescriptions.loc[:, prescriptions_cols]
     prescriptions_df.info()
 
-    conn = sqlite3.connect(os.path.join('../build_mimicsqlstar_db/', 'mimicsqlstar.db'))
+    conn = sqlite3.connect(os.path.join(PJT_ROOT_PATH ,'build_mimicsqlstar_db/', 'mimicsqlstar.db')) 
 
     patients_df.to_sql('PATIENTS', conn, if_exists='replace', index=False)
     addmissions_df.to_sql('ADMISSIONS', conn, if_exists='replace', index=False)
@@ -96,7 +100,8 @@ if __name__ == '__main__':
     d_labitem_df.to_sql('D_LABITEM', conn, if_exists='replace', index=False)
 
     print(f'LOAD DB ...')
-    db_file = '../build_mimicsqlstar_db/mimicsqlstar.db'
+
+    db_file = os.path.join(PJT_ROOT_PATH,'build_mimicsqlstar_db/mimicsqlstar.db')
     new_model = query(db_file)
     print('DONE')
 

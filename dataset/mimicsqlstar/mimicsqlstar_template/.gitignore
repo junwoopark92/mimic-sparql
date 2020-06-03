@@ -137,3 +137,11 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Datasets
+*.db
+*.xml
+train.json
+dev.json
+test.json
+vocab
