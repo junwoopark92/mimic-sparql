@@ -7,7 +7,7 @@ from collections import Counter
 from mimicsql.evaluation.utils import query
 from sql2sparql import SQL2SPARQL, split_entity
 from evaluation_sparql import isequal
-from build_mimicsparql_kg.build_kg_from_mimicsqlstar_db import clean_text
+from build_mimicsparql_kg.build_complex_kg_from_mimicsqlstar_db import clean_text
 
 
 def sparql_tokenize(sparql):
@@ -17,9 +17,41 @@ def sparql_tokenize(sparql):
     return sparql_tok.split()
 
 
-def convert_sql2sparql(filename='train.json', dataset_type='natural', execution=True):
-    savedir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
-    datadir = f'./dataset/mimicsqlstar/mimicsqlstar_{dataset_type}/'
+def convert_sql2sparql(complex=True, filename='train.json', dataset_type='natural', execution=True):
+    if complex:
+        savedir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
+        datadir = f'./dataset/mimicsqlstar/mimicsqlstar_{dataset_type}/'
+
+        sql2sparql = SQL2SPARQL(complex=complex, root='subject_id')
+
+        if execution:
+            print('LOAD  ... mimicqlstar.db')
+            db_file = './build_mimicsqlstar_db/mimicsqlstar.db'
+            model = query(db_file)
+            print('DONE')
+
+            print('LOAD KG ... mimic_kg')
+            kg = Graph()
+            kg.parse('./build_mimicsparql_kg/mimic_kg.xml', format='xml', publicID='/')
+            print('DONE')
+
+    else:
+        print(f'This dataset is Simple')
+        savedir = f'./dataset/mimicsparql_simple/mimicsparql_simple_{dataset_type}/'
+        datadir = f'./dataset/mimicsql/mimicsql_{dataset_type}/'
+
+        sql2sparql = SQL2SPARQL(complex=complex, root='hadm_id')
+
+        if execution:
+            print('LOAD ... mimic.db')
+            db_file = './mimicsql/evaluation/mimic_db/mimic.db'
+            model = query(db_file)
+            print('DONE')
+
+            print('LOAD KG ... mimic_simple_kg')
+            kg = Graph()
+            kg.parse('./build_mimicsparql_kg/mimic_simple_kg.xml', format='xml', publicID='/')
+            print('DONE')
 
     data = []
     with open(os.path.join(datadir, filename)) as json_file:
@@ -27,19 +59,6 @@ def convert_sql2sparql(filename='train.json', dataset_type='natural', execution=
             data.append(json.loads(line))
 
     df = pd.DataFrame(data)
-
-    if execution:
-        print('LOAD mimicqlstar.db ...')
-        db_file = './build_mimicsqlstar_db/mimicsqlstar.db'
-        model = query(db_file)
-        print('DONE')
-
-        print('LOAD KG ...')
-        kg = Graph()
-        kg.parse('./build_mimicsparql_kg/mimic_kg.xml', format='xml', publicID='/')
-        print('DONE')
-
-    sql2sparql = SQL2SPARQL()
 
     correct = 0
     sparqls = []
@@ -107,8 +126,12 @@ def convert_sql2sparql(filename='train.json', dataset_type='natural', execution=
     print(f"Write to {save_filename}")
 
 
-def build_vocab(dataset_type='natural'):
-    datadir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
+def build_vocab(complex=True, dataset_type='natural'):
+    if complex:
+        datadir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
+    else:
+        datadir = f'./dataset/mimicsparql_simple/mimicsparql_simple_{dataset_type}'
+
     filenames = ['train.json']
     counter = Counter()
     for filename in filenames:
@@ -132,9 +155,10 @@ def build_vocab(dataset_type='natural'):
 
 
 if __name__ == '__main__':
+    complex = False
     execution = False
     dataset_type = 'natural'
     filenames = ['train.json', 'dev.json', 'test.json']
     for filename in filenames:
-        convert_sql2sparql(filename=filename, dataset_type=dataset_type, execution=execution)
-    build_vocab(dataset_type=dataset_type)
+        convert_sql2sparql(complex=complex, filename=filename, dataset_type=dataset_type, execution=execution)
+    build_vocab(complex=complex, dataset_type=dataset_type)

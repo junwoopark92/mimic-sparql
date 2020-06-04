@@ -1,14 +1,11 @@
-import sys
-import networkx as nx
 import json
 import os
 import re
-import numpy as np
 import pandas as pd
 from rdflib import Graph
 from sql2sparql import SQL2SPARQL, sparql_postprocessing, join_entity
 from mimicsql.evaluation.utils import query
-from build_mimicsparql_kg.build_kg_from_mimicsqlstar_db import clean_text
+from build_mimicsparql_kg.build_complex_kg_from_mimicsqlstar_db import clean_text
 
 
 def split_triples(sparql):
@@ -68,7 +65,7 @@ def isequal(sql_answer, sparql_answer):
 
     sparql_answer = [tuple([entity2value(a) if type(a) == str else a for a in row]) for row in sparql_answer]
 
-    if set(sql_answer) == set(sparql_answer): #set의 결과가 같다면 정답
+    if set(sql_answer) == set(sparql_answer):
         return True
 
     sparql_answer = answer_normalization(sparql_answer)
@@ -82,10 +79,10 @@ def isequal(sql_answer, sparql_answer):
 
 def check_no_cond_val(sparql):
     cond = []
-    cond += re.findall('\^\^<http://', sparql) # value
-    cond += re.findall('</[a-z_]+/[\d]+>', sparql) # entity
-    cond += re.findall('"[a-z\d ]+"', sparql) # value
-    cond += re.findall('filter', sparql) # fiter
+    cond += re.findall('\^\^<http://', sparql)
+    cond += re.findall('</[a-z_]+/[\d]+>', sparql)
+    cond += re.findall('"[a-z\d ]+"', sparql)
+    cond += re.findall('filter', sparql)
     if len(cond) == 0:
         return True
     else:
@@ -169,11 +166,9 @@ def compare_sql_and_spqral_pred():
         sparql_gold = sparql_postprocessing(sparql_gold)
         sparql_gold = join_entity(sparql_gold)
 
-        # if replace_cond_val(sparql_pred) == replace_cond_val(sparql_gold):
-        #     lf_correct += 1
-
-        if sparql_pred == sparql_gold:
+        if sparql_pred.split() == sparql_gold.split():
             lf_correct += 1
+            ablation_dic['lf_correct'] = 1
 
         cond_sp = replace_cond_val(sparql_pred)
         cond_sg = replace_cond_val(sparql_gold)
@@ -187,7 +182,7 @@ def compare_sql_and_spqral_pred():
             lf_permu_cond_correct += 1
             ablation_dic['lf_cond_invar_correct'] = 1
 
-        if sps == sgs and set(spw) == set(sgw):
+        if cond_sps.split() == cond_sgs.split() and set(spw) == set(sgw):
             lf_permu_correct += 1
             ablation_dic['lf_correct'] = 1
 

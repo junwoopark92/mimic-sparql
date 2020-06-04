@@ -1,8 +1,10 @@
 import re
 import networkx as nx
-from build_mimicsparql_kg.kg_schema import SCHEMA_DTYPE, KG_SCHEMA
+from build_mimicsparql_kg.kg_complex_schema import SCHEMA_DTYPE, KG_SCHEMA
+from build_mimicsparql_kg.kg_simple_schema import SIMPLE_KG_SCHEMA, SIMPLE_SCHEMA_DTYPE
 from collections import OrderedDict
 from itertools import repeat
+
 
 def cond_syntax_fix(sparql):
     match = re.findall('"?[^>]*"?\^\^', sparql)
@@ -10,7 +12,7 @@ def cond_syntax_fix(sparql):
         sparql = sparql.replace(m, ' "' + m.split('^^')[0].strip().replace('"', '') + '"^^')
     return sparql
 
-# entity 공백을 준다.
+
 def split_entity(sparql):
     match = re.findall('</[a-z_]+/[\d.]+>',sparql)
     for m in match:
@@ -21,31 +23,48 @@ def split_entity(sparql):
         sparql = re.sub(m, repla, sparql)
     return sparql
 
-# entity 공백을 다시 채운다.
+
 def join_entity(sparql):
     match = re.findall('</[a-z_]+/ [\d\.]+ >[\. ]', sparql)
     for m in match:
         sparql = re.sub(m, ''.join(m.split() + [' ']), sparql)
     return sparql
 
+
 def clean_text(val):
     if type(val) == str:
         val = val.replace("\\", ' ')
     return val
 
+
+def value2entity(sparql):
+    where = sparql.split('where')[-1].split('filter')[0]
+    ms = re.findall('</[a-z_\d]+> [a-z\d.]+', where)
+    for m in ms:
+        rel, val = m.split()
+        val = val.replace('.','')
+        entity_val = f'{rel} {rel[:-1]}/{val}>.'
+        sparql = sparql.replace(m,entity_val)
+    return sparql
+
+
 def sparql_postprocessing(sparql):
-    sparql = clean_text(sparql.lower()) # sparql 소문자이나 한번더 소문자로 바꿔놓음
-    sparql = sparql.replace('/xmlschema#', '/XMLSchema#') # 소문자라서 스키마 일치가 안되는 경우
-    sparql = sparql.replace(' ^^<http://www', '^^<http://www') # ^^와 condition이 떨어져 있는 경우
-    sparql = sparql.replace(' <stop>', '') # prediction의 <stop> 토큰 제거
-    sparql = cond_syntax_fix(sparql) # condition "val"^^ syntax error fix
+    sparql = clean_text(sparql.lower())
+    sparql = sparql.replace(' <stop>', '')
+    sparql = sparql.replace('/xmlschema#', '/XMLSchema#')
+    sparql = sparql.replace(' ^^<http://www', '^^<http://www')
+    sparql = cond_syntax_fix(sparql)
+    sparql = value2entity(sparql)
     return sparql
 
 
 class SQL2SPARQL:
-    def __init__(self):
+    def __init__(self, complex, root='subject_id'):
+        self.schema = KG_SCHEMA if complex else SIMPLE_KG_SCHEMA
+        self.schema_type = SCHEMA_DTYPE if complex else SIMPLE_SCHEMA_DTYPE
+        self.schema_type = {k.lower(): v for k, v in self.schema_type.items()}
         self.schema_graph = nx.DiGraph()
-        for k, vs in KG_SCHEMA.items():
+        for k, vs in self.schema.items():
             for v in vs:
                 self.schema_graph.add_edge(k.lower(), v.lower())
         self.agg_func = ['count', 'max', 'min', 'avg']
@@ -53,8 +72,7 @@ class SQL2SPARQL:
         self.cond_p = re.compile('"[^"]*"|[=><]+')
         self.sparql_agg_template = "select ( {AGG} ( {DISTINCT} ?{COL} ) as ?agg ) "
         self.sparql_select_template = "select"
-        self.root = 'subject_id'
-        self.schema_type = {k.lower(): v for k, v in SCHEMA_DTYPE.items()}
+        self.root = root
         self.duplicate_columns = ['short_title', 'long_title', 'icd9_code']
 
     def _replace_dulicate_column(self, sql):
@@ -209,7 +227,7 @@ class SQL2SPARQL:
 
 
 if __name__ == '__main__':
-    sql2sparql = SQL2SPARQL()
+    sql2sparql = SQL2SPARQL(True)
 
     sql = """SELECT MIN ( ADMISSIONS."AGE" ) 
                 FROM ADMISSIONS
