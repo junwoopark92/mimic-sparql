@@ -1,3 +1,6 @@
+import sys
+sys.path.append('.')
+sys.path.append('..')
 import json
 import os
 import re
@@ -52,14 +55,42 @@ def entity2value(entity):
         return entity
 
 
-def replace_cond_val(q):
-    q = re.sub(' "[^"]*"', ' <cond>', q)
-    q = re.sub('[>=<]+ [0-9]+ ', '<cond> ', q)
-    q = re.sub('</[a-z_]+/[\d]+>', '<cond>', q)
-    return q
+def replace_cond_val(sparql):
+    try:
+        where_part = re.findall('{[^{^}].*}', sparql)[0]
+    except Exception as e:
+        print(e)
+        return sparql
+
+    where_part = where_part.replace('{', '').replace('}', '').strip()
+
+    try:
+        ent_rel_cond = re.findall('\?[a-z_\d]+ </[a-z_\d]+> [^?][^.^]+', where_part)
+        for m in ent_rel_cond:
+            token = m.split()
+            ent, rel = token[0], token[1]
+            re_m = ' '.join([ent, rel, '<COND>'])
+            sparql = sparql.replace(m, re_m)
+
+        cond_rel_ent = re.findall('<[^?^ ]+> </[a-z_\d]+> \?[a-z_\d]+', where_part)
+        for m in cond_rel_ent:
+            cond, rel, ent = m.split()
+            re_m = ' '.join(['<COND>', rel, ent])
+            sparql = sparql.replace(m, re_m)
+
+        filter_cond = re.findall('filter\( \?[a-z_\d]+ [<=>]+ [^?]+ \)', where_part)
+        for m in filter_cond:
+            ft, var, op, cond, _ = m.split()
+            re_m = ' '.join([ft, var, op, '<COND>', _])
+            sparql = sparql.replace(m, re_m)
+
+    except Exception as e:
+        print(e)
+
+    return sparql
 
 
-def isequal(sql_answer, sparql_answer):
+def isequal(sql_answer, sparql_answer): # list of tuple
     sql_answer = [row for row in sql_answer if 'None' not in row]
     sql_answer = [tuple([clean_text(a.lower()) if type(a) == str else a for a in row]) for row in sql_answer]
 
@@ -79,10 +110,10 @@ def isequal(sql_answer, sparql_answer):
 
 def check_no_cond_val(sparql):
     cond = []
-    cond += re.findall('\^\^<http://', sparql)
-    cond += re.findall('</[a-z_]+/[\d]+>', sparql)
-    cond += re.findall('"[a-z\d ]+"', sparql)
-    cond += re.findall('filter', sparql)
+    cond += re.findall('\^\^<http://', sparql) # value
+    cond += re.findall('</[a-z_\d]+/[\d]+>', sparql) # entity
+    cond += re.findall('"[a-z\d ]+"', sparql) # value
+    cond += re.findall('filter', sparql) # fiter
     if len(cond) == 0:
         return True
     else:
@@ -94,7 +125,7 @@ def n_inner_join(x):
 
 
 def compare_sql_and_spqral_pred():
-    datadir = '../TREQS/mimicsql_data/mimicnormal_natural/'
+    datadir = '../TREQS/mimicsql_data/mimicsql_natural/'
     filename = 'test.json'
     outputdir = '../TREQS/evaluation/generated_sql/'
     output_filename = 'output.json'
@@ -118,17 +149,18 @@ def compare_sql_and_spqral_pred():
     df = pd.DataFrame(data)
 
     print('LOAD DB ...')
-    db_file = './evaluation/mimic_db/mimic_normal.db'
+    db_file = './evaluation/mimic_db/mimic.db'
     model = query(db_file)
     print('DONE')
 
     print('LOAD KG ...')
     kg = Graph()
-    kg.parse('./evaluation/mimic_kg.xml', format='xml', publicID='/')
+    kg.parse('./evaluation/mimic_simple_kg.xml', format='xml', publicID='/')
     print('DONE')
 
     lf_permu_correct = 0
     lf_permu_cond_correct = 0
+    cond_lf_correct = 0
     lf_correct = 0
     gold_correct = 0
     pred_correct = 0
@@ -166,25 +198,34 @@ def compare_sql_and_spqral_pred():
         sparql_gold = sparql_postprocessing(sparql_gold)
         sparql_gold = join_entity(sparql_gold)
 
+
         if sparql_pred.split() == sparql_gold.split():
             lf_correct += 1
             ablation_dic['lf_correct'] = 1
 
+        print(sparql_gold)
+        print(sparql_pred)
+
         cond_sp = replace_cond_val(sparql_pred)
         cond_sg = replace_cond_val(sparql_gold)
+
+        if cond_sp.split() == cond_sg.split():
+            cond_lf_correct += 1
+            ablation_dic['cond_lf_correct'] = 1
+            print(cond_sg)
+            print(cond_sp)
+
         cond_sps, cond_spw = split_triples(cond_sp)
         cond_sgs, cond_sgw = split_triples(cond_sg)
 
         sps, spw = split_triples(sparql_pred)
         sgs, sgw = split_triples(sparql_gold)
 
-        if cond_sps == cond_sgs and set(cond_spw) == set(cond_sgw):
+        if cond_sps.split() == cond_sgs.split() and set(cond_spw) == set(cond_sgw):
             lf_permu_cond_correct += 1
-            ablation_dic['lf_cond_invar_correct'] = 1
 
-        if cond_sps.split() == cond_sgs.split() and set(spw) == set(sgw):
+        if sps.split() == sgs.split() and set(spw) == set(sgw):
             lf_permu_correct += 1
-            ablation_dic['lf_correct'] = 1
 
         print(i, sparql_gold)
         sparql_res = kg.query(sparql_gold)
@@ -228,6 +269,7 @@ def compare_sql_and_spqral_pred():
                 pred_correct += 1
 
         except:
+            print(sparql_pred)
             print("syntax error")
 
         ablation_results.append(ablation_dic)
@@ -237,8 +279,9 @@ def compare_sql_and_spqral_pred():
     print(f'[SQL2SPARQL] filenmae: {filename}, Answer Accuracy: {gold_correct / len(data):.4f}')
     print(f'[SQL2SPARQL] filenmae: {output_filename}, Answer Accuracy: {pred_correct / len(data):.4f}')
     print(f'[SQL2SPARQL] filenmae: {output_filename}, Logic Form Accuracy: {lf_correct / len(data):.4f}')
+    print(f'[SQL2SPARQL] filenmae: {output_filename}, Cond Invariant Logic Form Accuracy: {cond_lf_correct / len(data):.4f}')
     print(f'[SQL2SPARQL] filenmae: {output_filename}, Logic Form Accuracy*: {lf_permu_correct / len(data):.4f}')
-    print(f'[SQL2SPARQL] filenmae: {output_filename}, Logic Form Cond Invariant Accuracy*: {lf_permu_cond_correct / len(data):.4f}')
+    print(f'[SQL2SPARQL] filenmae: {output_filename}, Cond Invariant Logic Form Accuracy*: {lf_permu_cond_correct / len(data):.4f}')
 
     df = pd.DataFrame(ablation_results)
     df.fillna(0, inplace=True)
@@ -259,4 +302,5 @@ def compare_sql_and_spqral_pred():
 
 
 if __name__ == '__main__':
+    #compare_sql_and_spqral()
     compare_sql_and_spqral_pred()

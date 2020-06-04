@@ -232,9 +232,7 @@ if __name__ == '__main__':
     sql = """SELECT MIN ( ADMISSIONS."AGE" ) 
                 FROM ADMISSIONS
                 WHERE ADMISSIONS."DIAGNOSIS" = "S/P FALL" AND ADMISSIONS."ADMITYEAR" >= "2119"
-            """
-    # remain, where_part = sql.split(' WHERE ')
-    # select_part, remain = remain.split(' FROM ')
+    """
 
     sql = sql2sparql._replace_dulicate_column(sql)
     print(sql)

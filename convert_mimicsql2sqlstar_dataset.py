@@ -17,7 +17,7 @@ def tokenize_sql(q):
 
 
 def convert_sql2sparql(filename='train.json', dataset_type='natural', execution=True):
-    savedir = f'./dataset/mimicsqlstar/mimicsqlstar_{dataset_type}/'
+    savedir = f'./dataset/mimicsqlstar/{dataset_type}/'
     datadir = f'./dataset/mimicsql/mimicsql_{dataset_type}/'
     data = []
     with open(os.path.join(datadir, filename)) as json_file:

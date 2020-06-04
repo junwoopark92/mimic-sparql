@@ -19,8 +19,8 @@ def sparql_tokenize(sparql):
 
 def convert_sql2sparql(complex=True, filename='train.json', dataset_type='natural', execution=True):
     if complex:
-        savedir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
-        datadir = f'./dataset/mimicsqlstar/mimicsqlstar_{dataset_type}/'
+        savedir = f'./dataset/mimic_sparqlstar/{dataset_type}/'
+        datadir = f'./dataset/mimicsqlstar/{dataset_type}/'
 
         sql2sparql = SQL2SPARQL(complex=complex, root='subject_id')
 
@@ -32,12 +32,12 @@ def convert_sql2sparql(complex=True, filename='train.json', dataset_type='natura
 
             print('LOAD KG ... mimic_kg')
             kg = Graph()
-            kg.parse('./build_mimicsparql_kg/mimic_kg.xml', format='xml', publicID='/')
+            kg.parse('./build_mimicsparql_kg/mimic_sparqlstar_kg.xml', format='xml', publicID='/')
             print('DONE')
 
     else:
         print(f'This dataset is Simple')
-        savedir = f'./dataset/mimicsparql_simple/mimicsparql_simple_{dataset_type}/'
+        savedir = f'./dataset/mimic_sparql/{dataset_type}/'
         datadir = f'./dataset/mimicsql/mimicsql_{dataset_type}/'
 
         sql2sparql = SQL2SPARQL(complex=complex, root='hadm_id')
@@ -48,9 +48,9 @@ def convert_sql2sparql(complex=True, filename='train.json', dataset_type='natura
             model = query(db_file)
             print('DONE')
 
-            print('LOAD KG ... mimic_simple_kg')
+            print('LOAD KG ... mimic_sparql_kg')
             kg = Graph()
-            kg.parse('./build_mimicsparql_kg/mimic_simple_kg.xml', format='xml', publicID='/')
+            kg.parse('./build_mimicsparql_kg/mimic_sparql_kg.xml', format='xml', publicID='/')
             print('DONE')
 
     data = []
@@ -128,9 +128,9 @@ def convert_sql2sparql(complex=True, filename='train.json', dataset_type='natura
 
 def build_vocab(complex=True, dataset_type='natural'):
     if complex:
-        datadir = f'./dataset/mimicsparql/mimicsparql_{dataset_type}/'
+        datadir = f'./dataset/mimic_sparqlstar/{dataset_type}'
     else:
-        datadir = f'./dataset/mimicsparql_simple/mimicsparql_simple_{dataset_type}'
+        datadir = f'./dataset/mimic_sparql/{dataset_type}'
 
     filenames = ['train.json']
     counter = Counter()

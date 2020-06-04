@@ -5,14 +5,14 @@ import os
 import pandas as pd
 import sqlite3
 
-from schema_mimic import *
+from build_mimicsqlstar_db.schema_mimic import *
 from mimicsql.evaluation.utils import query
 
-PJT_ROOT_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__))) # project root path # Absolute path up to the second level where the current file is executed
+PJT_ROOT_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 print('PJT_ROOT_PATH: ',PJT_ROOT_PATH)
 
 if __name__ == '__main__':
-    db_conn = sqlite3.connect(os.path.join(PJT_ROOT_PATH,'mimicsql/evaluation/mimic_db/mimic.db')) # Absolute path up to the one level where the current file is executed
+    db_conn = sqlite3.connect(os.path.join(PJT_ROOT_PATH, 'mimicsql/evaluation/mimic_db/mimic.db'))
 
     patient_cols = list(patient_demographic_dtype.keys())
     addmission_cols = list(hadm_demographic_dtype.keys())
