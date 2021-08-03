@@ -74,7 +74,7 @@ Set the current directory in the project root folder, mimic-sparql.
 python convert_mimicsql2sql_dataset.py --dataset_type natural --execution False
 python convert_mimicsql2sql_dataset.py --dataset_type template --execution False
 ```
-if set execution as True, the execution results of both queries are compared with each other. 
+If set execution as True, the execution results of both queries are compared with each other. 
 ### 4. Convert mimicsql* SQL query to mimic-sparql SPARQL query
 Set the current directory as the project root folder, mimic-sparql.
 ```
@@ -84,4 +84,15 @@ python convert_sql2sparql_dataset.py --dataset_type natural --complex False --ex
 python convert_sql2sparql_dataset.py --dataset_type template --complex True --execution False
 python convert_sql2sparql_dataset.py --dataset_type template --complex False --execution False
 ```
-complex option is for selecting simplied schema (mimic-sparql from mimicsql) or original schema (mimic-sparql* from mimicsql*)  
+Complex option is for selecting simplied schema (mimic-sparql from mimicsql) or original schema (mimic-sparql* from mimicsql*)  
+
+## Citation
+```
+@article{park2020knowledge,
+  title={Knowledge Graph-based Question Answering with Electronic Health Records},
+  author={Park, Junwoo and Cho, Youngwoo and Lee, Haneol and Choo, Jaegul and Choi, Edward},
+  journal={arXiv preprint arXiv:2010.09394},
+  year={2020}
+}
+```
+This bibtex will be changed after being published on PMLR
