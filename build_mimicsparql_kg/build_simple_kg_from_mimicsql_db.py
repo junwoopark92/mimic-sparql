@@ -1,5 +1,7 @@
 import sys
 sys.path.append('..')
+sys.path.append('.')
+import os
 from rdflib import Graph, URIRef
 import sqlite3
 import pandas as pd
@@ -7,6 +9,8 @@ from rdflib import Literal
 from build_mimicsparql_kg.kg_simple_schema import demographic_dtype, procedures_dtype, prescriptions_dtype,\
     diagnoses_dtype, lab_dtype
 
+PJT_ROOT_PATH = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+print('PJT_ROOT_PATH: ', PJT_ROOT_PATH)
 
 domain = ''
 
@@ -66,7 +70,7 @@ def table2triples(df, parent_col, subject_col, col_types):
 
 
 if __name__ == '__main__':
-    db_conn = sqlite3.connect('../mimicsql/evaluation/mimic_db/mimic.db')
+    db_conn = sqlite3.connect(os.path.join(PJT_ROOT_PATH, './mimicsql/evaluation/mimic_db/mimic.db'))
 
     dmographic = pd.read_sql_query("SELECT * FROM demographic", db_conn)
     dmographic.info()
@@ -139,11 +143,11 @@ if __name__ == '__main__':
     print()
 
     print('SAVE KG ...')
-    kg.serialize('./mimic_sparql_kg.xml', format='xml')
+    kg.serialize('./build_mimicsparql_kg/mimic_sparql_kg.xml', format='xml')
     print('SAVE DONE')
     print('LOAD TEST ...')
     kg = Graph()
-    kg.parse('./mimic_sparql_kg.xml', format='xml', publicID='/')
+    kg.parse('./build_mimicsparql_kg/mimic_sparql_kg.xml', format='xml', publicID='/')
 
     print(len(kg))
     for i, t in enumerate(kg):

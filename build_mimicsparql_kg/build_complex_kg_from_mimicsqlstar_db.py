@@ -175,11 +175,11 @@ if __name__ == '__main__':
     print()
 
     print('SAVE KG ...')
-    kg.serialize('./mimic_sparqlstar_kg.xml', format='xml')
+    kg.serialize('./build_mimicsparql_kg/mimic_sparqlstar_kg.xml', format='xml')
     print('SAVE DONE')
     print('LOAD TEST ...')
     kg = Graph()
-    kg.parse('./mimic_sparqlstar_kg.xml', format='xml', publicID='/')
+    kg.parse('./build_mimicsparql_kg/mimic_sparqlstar_kg.xml', format='xml', publicID='/')
 
     print(len(kg))
     for i, t in enumerate(kg):

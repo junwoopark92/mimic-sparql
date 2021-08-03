@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 import json
 import os
-
+import argparse
 import pandas as pd
 from collections import Counter
 
@@ -104,7 +104,7 @@ def convert_sql2sparql(filename='train.json', dataset_type='natural', execution=
 
 
 def build_vocab(dataset_type='natural'):
-    datadir = f'./dataset/mimicsqlstar/mimicsqlstar_{dataset_type}/'
+    datadir = f'./dataset/mimicsqlstar/{dataset_type}/'
     filenames = ['train.json']
     counter = Counter()
     for filename in filenames:
@@ -128,8 +128,14 @@ def build_vocab(dataset_type='natural'):
 
 
 if __name__ == '__main__':
-    execution = False
-    dataset_type = 'natural'
+    parser = argparse.ArgumentParser(description='mimicsql to mimicsql*')
+    parser.add_argument('--dataset_type', type=str, default='natural', choices=['natural','template'])
+    parser.add_argument('--execution', default=False, type=lambda x: (str(x).lower() == 'true'))
+    args = parser.parse_args()
+
+    execution = args.execution
+    dataset_type = args.dataset_type
+
     filenames = ['train.json', 'dev.json', 'test.json']
     for filename in filenames:
         convert_sql2sparql(filename=filename, dataset_type=dataset_type, execution=execution)

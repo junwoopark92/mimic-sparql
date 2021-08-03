@@ -1,6 +1,7 @@
 import json
 import os
 import pandas as pd
+import argparse
 from rdflib import Graph
 from collections import Counter
 
@@ -155,9 +156,16 @@ def build_vocab(complex=True, dataset_type='natural'):
 
 
 if __name__ == '__main__':
-    complex = False
-    execution = False
-    dataset_type = 'natural'
+    parser = argparse.ArgumentParser(description='mimicsql to mimic-sparql')
+    parser.add_argument('--complex', default=False, type=lambda x: (str(x).lower() == 'true'))
+    parser.add_argument('--dataset_type', type=str, default='natural', choices=['natural','template'])
+    parser.add_argument('--execution', default=False, type=lambda x: (str(x).lower() == 'true'))
+    args = parser.parse_args()
+
+    execution = args.execution
+    dataset_type = args.dataset_type
+    complex = args.complex
+
     filenames = ['train.json', 'dev.json', 'test.json']
     for filename in filenames:
         convert_sql2sparql(complex=complex, filename=filename, dataset_type=dataset_type, execution=execution)
