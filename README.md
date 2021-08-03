@@ -1,5 +1,5 @@
 # MIMIC-SPARQL
-This repository provides the official mimic-sparql dataset implementation of the following paper: [Knowledge Graph-based Question Answering with Electronic Health Records](https://arxiv.org/abs/2010.09394)
+This repository provides the official mimic-sparql dataset implementation of the following paper: [Knowledge Graph-based Question Answering with Electronic Health Records](https://arxiv.org/abs/2010.09394) accepted at Machine Learning in Health Care (MLHC) 2021.
 ## Example
 ```
 NLQ: how many patients were born before the year 2060?
