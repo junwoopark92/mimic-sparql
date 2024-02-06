@@ -88,14 +88,14 @@ Complex option is for selecting simplied schema (mimic-sparql from mimicsql) or 
 
 ## Citation
 ```
-@InProceedings{pmlr-v149-park21a,
+@inproceedings{pmlr-v149-park21a,
   title = 	 {Knowledge Graph-based Question Answering with Electronic Health Records},
   author =       {Park, Junwoo and Cho, Youngwoo and Lee, Haneol and Choo, Jaegul and Choi, Edward},
   booktitle = 	 {Proceedings of the 6th Machine Learning for Healthcare Conference (MLHC)},
   pages = 	 {36--53},
   year = 	 {2021},
-  editor = 	 {Jung, Ken and Yeung, Serena and Sendak, Mark and Sjoding, Michael and Ranganath, Rajesh},
   volume = 	 {149},
   publisher =    {PMLR}
+}
 ```
 This bibtex will be changed after being published on PMLR
